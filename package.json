@@ -6,13 +6,12 @@
   "description": "Rich Text Editor npm package",
   "scripts": {
     "dev": "vite",
-    "build-tailwind": "npx tailwindcss build src/style/tailwind.css  -o src/style/tailwind.output.scss -c tailwind.config.js",
+    "build-tailwind": "npx tailwindcss build src/style/tailwind.css -o src/style/tailwind.output.scss -c tailwind.config.js",
     "clean": "rimraf dist",
     "build-package": "yarn clean; rollup -c",
-    "publish": "npx semantic-release --no-ci",
+    "publish": "npm publish",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "storybook": "start-storybook -p 9009 -s public",
     "build-storybook": "build-storybook -s public",
     "component:new": "hygen component with-prompt"
   },
