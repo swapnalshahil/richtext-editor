@@ -1,0 +1,254 @@
+@import './fx.scss';
+
+/* base url for images */
+$image-base-url: 'https://assets.nobroker.in/static/img/';
+
+/* Color Variables */
+$black: #000 !default;
+$white: #fff !default;
+$primary-color: #fd3752 !default;
+$secondary-color: #009587 !default;
+$tertiary-color: #376ca8 !default;
+$quaternary-color: #334a5c !default;
+$warning-color: #ff974c !default;
+$error-color: #d50000 !default;
+$default-color: #464646 !default;
+$gray-dark: #444 !default;
+$gray-light: #787676 !default; //changed the color code (#808080) to reach the contrast ratio of 4.5+
+$gray-lighter: #999 !default;
+$gray-lightest: #ccc !default;
+$background-color: #f2f2f2 !default;
+$card-border-light: #efefef !default;
+$card-border-dark: #e2e2e2 !default;
+$background-gray-light: #f8f8f8 !default;
+$blue: #2196f3;
+$pink: #ba68c8;
+$background-mute: #454343;
+$color-mute: #333;
+$transparent: transparent;
+$rentopay-theme: #3f51b5;
+$light-textcolor: #363636;
+$rentopay-theme-dark: #3240a0;
+$gray-darker: #222222;
+$club-header-text: #3341a1;
+$tnc-color: #6f6e6e;
+$tnc-color: #6f6e6e;
+$link: #204a87;
+$generate-link: #909496;
+$mobile-border-color: #9e9e9e;
+$subheader-background-color: #f5f5f5;
+$request-btn-color: #555656;
+$shadow-gray-light: #888888;
+
+/* Default box-shadow color */
+$default-box-shadow-color: #00000029;
+$hs-color: #6e2d5c;
+$line-color: #dbdbdb;
+
+// Default chat card styles
+$chat-content-partition: #eeeeee;
+$chat-card-background: #e9e9e9;
+$chat-window-background: #e8eded;
+$chat-date-background: #cceae6;
+$chat-shadow-color: #0000001b;
+$chat-event-background: #feffea;
+
+/* Font-size */
+$h0-font-size: 36px !default;
+$h1-font-size: 32px !default;
+$h2-font-size: 30px !default;
+$h3-font-size: 26px !default;
+$h4-font-size: 22px !default;
+$h5-font-size: 18px !default;
+$h6-font-size: 16px !default;
+$default-font-size: 14px !default;
+$h7-font-size: 12px !default;
+$h8-font-size: 10px !default;
+$h9-font-size: 8px !default;
+
+/* Font-weight */
+$font-extra-light: 100 !default;
+$font-light: 300 !default;
+$font-semi-bold: 600 !default;
+$font-bold: 700 !default;
+$default-font-weight: 400 !default;
+
+/* packers and movers page variable */
+$homepage-background-gradient-1: #432780;
+$homepage-background-gradient-2: #694bac;
+$checkmark-backgroud: #684ca8;
+$ratting-backgroud: #472b84;
+$landing-page-form-input-el-backgroud: #f3f3f3;
+
+/* New Home page variable */
+$search-wrapper-background: #fdfdfd;
+$search-box-text: #939e9d;
+$last-search-border: #ddd;
+$last-search-color: #9b9b9b;
+$sidebar-top-section-bg-color: #858585;
+/* Abuse Report Feedback Variables */
+$feedback-background: #e8f4f3;
+$map-background: rgba(0, 0, 0, 0.8);
+$feedback-color: #292929;
+$feedback-text: #707070;
+
+/* title verified icon color for sale list page */
+$title-verified-color: #ffd500;
+
+/* property plan variable */
+$basic-plan-color: #538dd1;
+$freedom-plan-color: #009587;
+$light-green: #098c00;
+$relax-plan-color: #00668a;
+$moneyback-plan-color: #f25f5c;
+$pay-rent: #376ca8;
+$background-mute: #454343;
+$color-mute: #333;
+$cta-color: #4b59d0;
+$background-colour-inactive: #696666;
+/* Rentopay-variables*/
+$rentopay-color: #292929;
+$nbcash-text: #fd8f25;
+$ls-primary-green: #169b6a;
+$ls-grey-variant: #e6e6e6;
+$rentopay-color-dark-blue: #283593;
+$imageBaseUrl: 'https://assets.nobroker.in';
+
+// legsl services variables
+$ls-theme-dark: #442c7f;
+$ls-theme-light: #684ea9;
+$ls-hightlight-color: #fa3a57;
+$ls-packageborder-color: #e8e8e8;
+$ls-boxshadow-v1: #0000001a;
+$ls-fontsize-v1: 24px;
+$ls-fontsize-v2: 13px;
+$ls-fontsize-v3: 17px;
+$ls-fontsize-v4: 20px;
+$ls-tips-gbcolor: #f4f4f4;
+$ls-hiw-color: #f3f0fa;
+$ls-hiw-titlehighlight-color: #e5dfef;
+$ls-hiw-dashcolor: #d1d1d1;
+$ls-secondarybutton-bg: #e5ebea;
+$ls-secondarybutton-color: #030808;
+$ls-content-maxwidth: 1600px;
+$ls-bg-color: #f0f0f0;
+$ls-checklisticon-color: #21b088;
+$ls-bgcolor-v2: #e5e5e5;
+$ls-formemelent-border: #e3d9de;
+$ls-bgcolor-v3: #f4f3f8;
+$ls-summary-maxwidth: 1280px;
+$ls-skipcolor: #464646cc;
+$ls-box-shadow: #0000001f;
+$ls-textcolor-1: #432b7e;
+$ls-preview-bg: #fafafa;
+$mybookings-rating-bg: #e7f4f3;
+$mybookings-rating-actioncolor: #159587f3;
+$border-color-v2: #bebebe;
+$border-color-v3: #d4d4d4;
+$border-color: #dcdcdc;
+$active-chip-color: #008387;
+$bg-color-v3: #f7f7f7;
+$custom-font-size-v3: 15px;
+$ls-form-optional-check-box: #363636;
+$ls-form-active-bg: #f3faf9;
+$ls-form-active-primary: #159588;
+$ls-form-active-shadow: #00000029;
+$ls-form-white-bg: #ffffff;
+
+// mybooknig vars moved here
+$desktop-margin: 24px;
+$mobile-margin: 16px;
+$subtitle-color: #363636;
+$more-opt-background: #e8e8e8;
+$safe-payments-background: #ff8e3c1a;
+$rewards-container-background: #fdefd9;
+$appointment-text-color: #36363699;
+$appointment-status-background: #4d84ff;
+$border-color-v3: #dfdfdf;
+// limit exceed popup button
+$limit-exceed-show-property: #e5ebea;
+$mybookings-bg-v3: #fff1d9;
+
+// wallet vars
+$credit-card-modal-background: #d3d3d3;
+$credit-card-image-background: #dedede;
+$claim-coupon-background: #282531;
+$offer-header-font-color: #191820;
+$light-default-text-color: #464644;
+//pyp colors variables
+$hs-card-color: #ffa70033;
+$card-background: #edf5fc;
+$card-border: #dae6f0;
+$card-photo-background: #fff8eb;
+$card-photo-border: #ff8e3c66;
+$selected-chip-color: #279586;
+$selected-chip-background-color: #15948719;
+$pyp-toggle-color: #15948778;
+$property-item-shadow: #00000014;
+$upload-image: #8d8d8d;
+$font-rent-color: #ad7528;
+$font-rent-background-color: #fff1d6;
+$font-rent-transparent-start-color: #fedfb5;
+$font-rent-transparent-end-color: #fecb85;
+$font-sale-color: #386598;
+$font-sale-background-color: #abe6e8;
+$font-sale-transparent-start-color: #d5eaff;
+$font-sale-transparent-end-color: #86b7ed;
+$pyp-grey-color: #159487;
+
+// wallet v2 variables
+$text-shadow-color: #0000009b;
+$title-color: #363636;
+$description-color: #666666cc;
+$description-color-mobile: #d2d5e5;
+$expiry-bg: #fcedd9;
+$color-bg-blue-1: #303b72;
+$color-bg-blue-2: #384ca5;
+$color-expiry-message: #353535;
+$offer-dashboard-background: #0e174d;
+$heading-color: #3a4548;
+$scratch-card-bg: #172058;
+$card-footer-bg: #172058d9;
+$modal-bg: #000000e6;
+$wallet-box-shadow: #0000001f;
+$card-border-color: #00000021;
+$modal-text-color: #f0f2ff;
+$wlt-box-shadow: #ffffff1f;
+$modal-share-bg: #09051a;
+$expiry-bg: #e3e9ef;
+$color-description: #707070;
+$card-border-color: #e6eff2;
+$color-transaction-credit: #65e632;
+$close-btn-hover: #aaa;
+$earn-cash-card-bg: #d4992d40;
+$mb-border: #ad54d3;
+$mb-border-dark: #8e44ad;
+$mb-bg: #5d2b72;
+$new-feature-card-color: #292929;
+$wlt-dashboard-border: #26368e;
+$button-color: #3240a0;
+$partner-bg: #a2a2a2;
+$transaction-bg: #f5f8f8;
+$partner-offer-bg: #d9dfff;
+$select-offer-bg: #d1d1d1;
+$select-offer-bg-dark: #f2f2fa;
+$select-offer-disabled-btn: #b9b9b9;
+$rp-bg: #ededed;
+$earn-bg: #2d366c;
+$tc-bg-light: #4c93d0;
+$tc-bg-dark: #204487;
+$coupon-bg-light: #65b2cc;
+$coupon-bg-dark: #508b9f;
+$mb-text-color: #feaa5beb;
+$sc-wrapper-bg: #0000000f;
+$owner-club: #694a42;
+$wlt-grey-variant: #e6e6e6;
+$rp-button: #3f51b5;
+$expiry-footer: #00000099;
+$partner-offer-border: #92a0ed;
+$partner-offer-category-border: #d9dedc;
+$primary-shadow-color: #00000033;
+$secondary-shadow-color: #00000024;
+$tertiary-shadow-color: #0000001f;
+$service-text-color: #555555;
+$service-subtext-color: #53b590;
