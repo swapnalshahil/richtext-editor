@@ -1,7 +1,7 @@
 {
   "name": "@eulersgamma/richtext-editor",
-  "license": "MIT License",
-  "version": "0.0.4",
+  "license": "MIT",
+  "version": "0.0.5",
   "author": "Swapnal Shahil",
   "description": "Rich Text Editor npm package",
   "repository": {
@@ -60,6 +60,7 @@
     "postcss-import-sync2": "1.1.0",
     "postcss-scss": "2.0.0",
     "postcss-url": "^8.0.0",
+    "rimraf": "^5.0.8",
     "rollup": "^2.33.3",
     "rollup-plugin-copy": "^3.3.0",
     "rollup-plugin-postcss": "^3.1.8",
