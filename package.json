@@ -1,13 +1,21 @@
 {
   "name": "@eulersgamma/richtext-editor",
   "license": "MIT License",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "author": "Swapnal Shahil",
   "description": "Rich Text Editor npm package",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/swapnalshahil/richtext-editor.git"
   },
+  "keywords": [
+    "richtext-editor",
+    "rich-text-editor",
+    "rich text editor",
+    "draft-js",
+    "editor",
+    "eulersgamma"
+  ],
   "scripts": {
     "dev": "vite",
     "build-tailwind": "npx tailwindcss build src/style/tailwind.css -o src/style/tailwind.output.scss -c tailwind.config.js",
