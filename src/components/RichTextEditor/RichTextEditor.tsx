@@ -7,23 +7,26 @@ import './RichTextEditor.scss';
 
 const Person = ({ person, selected, onClick, mentionRef }) => {
     const handleClick = (ev) => {
-        onClick(person);
         ev.preventDefault();
         ev.stopPropagation();
+        onClick(person);
         if (mentionRef.current) {
             mentionRef.current = null;
         }
     };
 
     return (
-        <div className={`${selected ? 'selected bg-gray-100' : ''} max-w-[200px] bg-white cursor-pointer p-2 hover:bg-gray-100`} onClick={handleClick}>
-            <div className='w-full truncate'>{person?.label}</div>
+        <div className={`max-w-[200px] cursor-pointer p-2 ${selected ? 'bg-gray-300' : ''} flex justify-start items-center people`} onClick={handleClick}>
+            <div style={{ width: '60px', padding: '2px' }} className='flex overflow-hidden justify-center items-center'>
+                {person?.image ? <img src={person?.image} alt='' style={{ width: '30px', height: '30px', borderRadius: '9999px' }} /> : <div style={{ width: '30px', height: '30px', color: 'white', borderRadius: '9999px', backgroundColor: colors[(Math.floor(Math.random() * colors.length) || 0)] }} className='flex justify-center items-center text-center'>{person?.label?.length > 0 && person?.label[0]?.toUpperCase()}</div>}
+            </div>
+            <div style={{ width: '140px', textAlign: 'left' }} className='truncate'>{person?.label}</div>
         </div>
     );
 };
 const People = ({ top, left, people, selectedIndex, onClick, style, mentionRef }) => {
     return (
-        <div className="bg-white border border-gray-100 flex flex-col justify-start text-center gap-2 p-2 people absolute w-[200px] z-50 max-h-[200px] overflow-y-auto overflow-x-hidden rounded shadow-md" style={{
+        <div className="bg-white border border-gray-100 flex flex-col justify-start text-center items-start gap-2 p-2 absolute w-[224px] z-50 max-h-[200px] overflow-y-auto overflow-x-hidden rounded shadow-md" style={{
             ...style,
         }} tabIndex={-1} ref={mentionRef}>
             {people.map((person, idx) => (
@@ -38,6 +41,39 @@ const People = ({ top, left, people, selectedIndex, onClick, style, mentionRef }
         </div>
     );
 }
+const colors = [
+    '#FF6347', // Tomato
+    '#FF4500', // OrangeRed
+    '#FFD700', // Gold
+    '#FFA500', // Orange
+    '#FF8C00', // DarkOrange
+    '#FF69B4', // HotPink
+    '#FF1493', // DeepPink
+    '#FF00FF', // Magenta
+    '#FF00FF', // Fuchsia
+    '#DC143C', // Crimson
+    '#DB7093', // PaleVioletRed
+    '#DA70D6', // Orchid
+    '#BA55D3', // MediumOrchid
+    '#9370DB', // MediumPurple
+    '#8A2BE2', // BlueViolet
+    '#7B68EE', // MediumSlateBlue
+    '#6A5ACD', // SlateBlue
+    '#483D8B', // DarkSlateBlue
+    '#4169E1', // RoyalBlue
+    '#00BFFF', // DeepSkyBlue
+    '#00CED1', // DarkTurquoise
+    '#00FA9A', // MediumSpringGreen
+    '#3CB371', // MediumSeaGreen
+    '#2E8B57', // SeaGreen
+    '#228B22', // ForestGreen
+    '#20B2AA', // LightSeaGreen
+    '#008080', // Teal
+    '#008000', // Green
+    '#32CD32', // LimeGreen
+    '#ADFF2F', // GreenYellow
+];
+
 const cssStyles = `
   .RichEditor-root {
     background: #fff !important;
@@ -128,7 +164,14 @@ const cssStyles = `
     position: relative !important;
     z-index: 1 !important;
   }
-
+   .people {
+    background-color: white;
+    transition: background-color 0.2s ease;
+  }
+  
+  .people:hover {
+    background-color: #d1d5db;
+  }
   .public-DraftEditor-block {
     position: relative !important;
   }
@@ -411,7 +454,7 @@ const cssStyles = `
 `;
 
 const RichTextEditor: React.FC = (props: any) => {
-    const { rawJson, mentionmembers, dropDownAPI, OnSubmit, getUrlforMedia } = props;
+    const { rawJson, mentionmembers, dropDownAPI, OnSubmit, getUrlforMedia, style } = props;
 
     const findLinkEntities = (contentBlock: any, callback: any, contentState: ContentState) => {
         contentBlock.findEntityRanges(
@@ -436,6 +479,7 @@ const RichTextEditor: React.FC = (props: any) => {
                     e.preventDefault();
                     window.open(url, '_blank', 'noopener,noreferrer');
                 }}
+                target='_blank'
             >
                 {props.children}
             </a>
@@ -496,6 +540,7 @@ const RichTextEditor: React.FC = (props: any) => {
     const [mentionData, setMentionData] = useState(new Set())
     const [people, setPeople] = useState([]);
     const [noteId] = useState(getRandomKey());
+    const prevMenText = useRef(null);
     // useCloseModal( hTextModal, () => setActiveAction({}));
 
     const focus = useCallback(() => {
@@ -523,22 +568,28 @@ const RichTextEditor: React.FC = (props: any) => {
     }, []);
 
 
-
     const onChange = async (editorState: EditorState) => {
-
-        if (mention && !mentionRef?.current) {
+        if (mention && mentionRef?.current?.length !== mention?.people?.length) {
             const caret = getCaretPosition(editorState)
             if (caret > mention?.offset) {
-                const mentionText = getText(editorState, mention.offset + 1, caret).toLowerCase()
-                const candidates = await dropDownAPI(mentionText);
-                const coordinates = getMentionPosition();
-                setMention({
-                    ...mention,
-                    selectedIndex: 0,
-                    people: candidates,
-                    position: coordinates
-                })
-                setEditorState(editorState);
+                const mentionText = getText(editorState, mention.offset + 1, caret).toLowerCase();
+                if (prevMenText.current && prevMenText.current === mentionText) {
+                    mentionRef.current.focus();
+                    prevMenText.current = null;
+                } else {
+                    prevMenText.current = mentionText;
+                    const candidates = await dropDownAPI(mentionText);
+                    const coordinates = getMentionPosition();
+                    setMention({
+                        ...mention,
+                        selectedIndex: 0,
+                        people: candidates,
+                        position: coordinates
+                    })
+                    setEditorState(editorState);
+
+                }
+                // mentionRef.current.focus();
             } else {
                 // last change deleted the @ character, so exit mention mode
                 setEditorState(editorState);
@@ -946,22 +997,38 @@ const RichTextEditor: React.FC = (props: any) => {
 
     };
     const getMentionPosition = () => {
-        const range = window?.getSelection()?.getRangeAt(0)?.cloneRange();
+        const selection = window?.getSelection();
+        let range = null;
+
+        if (selection && selection.rangeCount > 0) {
+            range = selection?.getRangeAt(0)?.cloneRange();
+        } else {
+            console.warn('No valid selection found');
+        }
+
         const rect = range?.getBoundingClientRect();
         if (!rect) {
             setMention(undefined)
         }
+        const ele = document.getElementById(`my-rich-text-editor-${noteId}`);
+        const editorCoordinates = ele.getBoundingClientRect();
         const totalWidth = window?.innerWidth;
         const totalHeight = window?.innerHeight;
-        let leftPosition = rect?.left;
-        let topPosition = rect?.bottom;
-        if (totalWidth - rect?.left < 180) {
-            leftPosition = rect?.left - 180;
+        const editorLeft = editorCoordinates?.left;
+        const editorTop = editorCoordinates?.top;
+        let leftPosition = rect?.left - editorLeft;
+        let topPosition = rect?.bottom - editorTop;
+        if (rect?.left >= editorLeft && rect?.top >= editorTop && rect?.top <= editorCoordinates?.bottom && rect?.right <= editorCoordinates?.right) {
+            if (totalWidth - rect?.left < 180) {
+                leftPosition = leftPosition - 180;
+            }
+            if (totalHeight - rect?.bottom < 100) {
+                topPosition = topPosition - 215;
+            }
+            return { top: topPosition, left: leftPosition }
+        } else {
+            return { top: mention?.position?.top, left: mention?.position?.left }
         }
-        if (totalHeight - rect?.bottom < 100) {
-            topPosition = rect?.bottom - 215;
-        }
-        return { top: topPosition, left: leftPosition }
 
     };
     const handleOnSubmit = async (e: any) => {
@@ -976,10 +1043,13 @@ const RichTextEditor: React.FC = (props: any) => {
         rawContentState?.blocks?.forEach(block => {
             noteText += block?.text + ' ';
         });
-        console.log({ html: element?.innerHTML, rawJson: rawContentState, mentions: sendMentions, text: noteText }, "onsubmit");
-        await OnSubmit({ html: element?.innerHTML, rawJson: rawContentState, mentions: sendMentions, text: noteText });
-        setEditorState(EditorState.createEmpty(decorator));
-        editorRef.current = null;
+        if(noteText !== ' '){
+            console.log({ html: element?.innerHTML, rawJson: rawContentState, mentions: sendMentions, text: noteText }, "onsubmit");
+            await OnSubmit({ html: element?.innerHTML, rawJson: rawContentState, mentions: sendMentions, text: noteText });
+            setEditorState(EditorState.createEmpty(decorator));
+            setSelectedTextType('Normal');
+            // editorRef.current = null;
+        }
     }
 
     const BlockStyleControls: React.FC<any> = ({ editorState, onToggle }) => {
@@ -994,11 +1064,15 @@ const RichTextEditor: React.FC = (props: any) => {
         // console.log(currentStyle, "currentStyle")
 
         return (
-            <div className="flex p-2 justify-center items-center" onClick={() => {
+            <div className="flex p-2 justify-center items-center" onMouseEnter={(e) => {               
+                editorRef?.current?.blur();
+            }} onClick={() => {
                 if (activeAction['toggle-textType']) setActiveAction({})
             }
             } >
-                <div className='w-[96%] flex flex-wrap gap-3 justify-start items-center' onClick={() => {
+                <div className='w-[96%] flex flex-wrap gap-3 justify-start items-center' onMouseEnter={(e) => {        
+                    editorRef?.current?.blur();
+                }} onClick={() => {
                     if (activeAction['toggle-textType']) setActiveAction({})
                 }
                 } >
@@ -1105,7 +1179,12 @@ const RichTextEditor: React.FC = (props: any) => {
                 </div>
 
 
-                <div className='flex justify-end items-center cursor-pointer p-1' onClick={handleOnSubmit}>
+                <div className='flex justify-end items-center cursor-pointer p-1' onMouseEnter={(e) => {
+                    // e.preventDefault();
+                    editorRef?.current?.blur();
+                }} onClick={(e) => {
+                    handleOnSubmit(e);
+                }}>
                     <img src={sendImage} alt='send' className='w-[22px] h-[22px]' />
                 </div>
             </div>
@@ -1230,10 +1309,10 @@ const RichTextEditor: React.FC = (props: any) => {
 
     return (
         // <div className='flex justify-center items-center' style={{ marginTop: '2rem' }}>
-        <div className="border border-gray-200 rounded shadow p-2" style={{ width: '100%' }}>
+        <div className="border border-gray-200 rounded shadow-sm p-2" style={{ width: '100%' }}>
             <style>{cssStyles}</style>
             <BlockStyleControls editorState={editorState} onToggle={toggleBlockType} />
-            <div className={`border border-gray-200 rounded shadow p-2 min-h-[150px]`} id={`my-rich-text-editor-${noteId}`} onClick={focus}>
+            <div className={`border border-gray-200 rounded p-2 relative`} style={{ minHeight: style?.height ? style.height : '150px' }} id={`my-rich-text-editor-${noteId}`} onClick={focus}>
                 {mention && mention?.people?.length > 0 ?
                     <People
                         {...(mention?.position)}

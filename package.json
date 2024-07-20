@@ -1,7 +1,7 @@
 {
   "name": "@eulersgamma/richtext-editor",
   "license": "MIT",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "author": "Swapnal Shahil",
   "description": "Rich Text Editor npm package",
   "repository": {
