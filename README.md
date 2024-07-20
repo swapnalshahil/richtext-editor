@@ -31,6 +31,7 @@ Seamlessly integrate the Rich Text Editor into your project:
     dropDownAPI={dropDownAPI}
     onSubmit={onSubmit}
     getUrlforMedia={getUrlforMedia}
+    style={{height: '140px'}}
   />
 ```
 
