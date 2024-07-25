@@ -1,9 +1,9 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Editor, EditorState, RichUtils, getDefaultKeyBinding, DraftHandleValue, DraftEditorCommand, CompositeDecorator, ContentState, Entity, convertToRaw, AtomicBlockUtils, Modifier, SelectionState, convertFromHTML, convertFromRaw } from 'draft-js';
+import { Editor, EditorState, RichUtils, getDefaultKeyBinding, DraftHandleValue, DraftEditorCommand, CompositeDecorator, ContentState, convertToRaw, AtomicBlockUtils, Modifier, SelectionState, convertFromHTML, convertFromRaw, genKey, ContentBlock } from 'draft-js';
 import { detectFileType, getYouTubeVideoId, getCaretPosition, getText, getCurrentBlock, getRandomKey, getFileName, isValidURL } from './utils';
 import sendImage from '../../common/assets/Icons/svg/send.svg';
+import { List, Repeat } from 'immutable';
 import './RichTextEditor.scss';
-
 
 const Person = ({ person, selected, onClick, mentionRef }) => {
     const handleClick = (ev) => {
@@ -559,22 +559,26 @@ const RichTextEditor: React.FC = (props: any) => {
         if (rawJson && Object.keys(rawJson).length > 0) {
             const contentState = convertFromRaw(rawJson);
             setEditorState(EditorState.createWithContent(contentState, decorator));
+        } else if (rawJson && Object.keys(rawJson).length === 0) {
+            setEditorState(EditorState.createEmpty(decorator));
+        } else {
+            editorRef?.current.focus();
         }
         if (mentionmembers?.length > 0) {
             const NoteMentionData = new Set(mentionmembers.map(obj => JSON.stringify(obj)));
             setMentionData(NoteMentionData);
         }
 
-    }, []);
+    }, [rawJson]);
 
 
     const onChange = async (editorState: EditorState) => {
         if (mention && mentionRef?.current?.length !== mention?.people?.length) {
             const caret = getCaretPosition(editorState)
             if (caret > mention?.offset) {
-                const mentionText = getText(editorState, mention.offset + 1, caret).toLowerCase();
+                const mentionText = getText(editorState, mention?.offset + 1, caret)?.toLowerCase();
                 if (prevMenText.current && prevMenText.current === mentionText) {
-                    mentionRef.current.focus();
+                    mentionRef?.current?.focus();
                     prevMenText.current = null;
                 } else {
                     prevMenText.current = mentionText;
@@ -720,8 +724,9 @@ const RichTextEditor: React.FC = (props: any) => {
         onChange(newState);
     };
 
-    const toggleInlineStyle = (inlineStyle: string) => {
-        onChange(RichUtils.toggleInlineStyle(editorState, inlineStyle));
+    const toggleInlineStyle = (inlineStyle: any) => {
+        const newState = RichUtils.toggleInlineStyle(editorState, inlineStyle);
+        onChange(newState);
     };
 
     /// for link
@@ -836,7 +841,7 @@ const RichTextEditor: React.FC = (props: any) => {
         }
         const contentState = editorState.getCurrentContent();
 
-        console.log(urlType, checktype, src, "urlType", contentState);
+        // console.log(urlType, checktype, src, "urlType", contentState);
         if (checktype !== 'Unknown') {
             const contentStateWithEntity = contentState.createEntity(
                 checktype,
@@ -904,6 +909,36 @@ const RichTextEditor: React.FC = (props: any) => {
         HIGHLIGHT: {
             backgroundColor: 'yellow',
         },
+        FONT_ARIAL: {
+            fontFamily: 'Arial, sans-serif',
+        },
+        FONT_GEORGIA: {
+            fontFamily: 'Georgia, serif',
+        },
+        FONT_HELVETICA: {
+            fontFamily: 'Helvetica, sans-serif',
+        },
+        FONT_TIMES_NEW_ROMAN: {
+            fontFamily: '"Times New Roman", Times, serif',
+        },
+        FONT_COURIER_NEW: {
+            fontFamily: '"Courier New", Courier, monospace',
+        },
+        FONT_VERDANA: {
+            fontFamily: 'Verdana, sans-serif',
+        },
+        FONT_TAHOMA: {
+            fontFamily: 'Tahoma, sans-serif',
+        },
+        FONT_TREBUCHET_MS: {
+            fontFamily: '"Trebuchet MS", Helvetica, sans-serif',
+        },
+        FONT_IMPACT: {
+            fontFamily: 'Impact, Charcoal, sans-serif',
+        },
+        FONT_COMIC_SANS_MS: {
+            fontFamily: '"Comic Sans MS", cursive, sans-serif',
+        },
     };
 
     const getBlockStyle = (block: any) => {
@@ -913,6 +948,51 @@ const RichTextEditor: React.FC = (props: any) => {
             case 'code-block': return 'bg-gray-100 border-l-4 border-gray-300 font-mono text-sm p-2 my-4 overflow-x-auto whitespace-pre-wrap';
             default: return null;
         }
+    };
+    const insertHorizontalLine = (editorState, blockType) => {
+        const contentState = editorState.getCurrentContent();
+        const selectionState = editorState.getSelection();
+
+        const newContentState: ContentState | any = Modifier.setBlockType(
+            contentState,
+            selectionState,
+            blockType
+        );
+
+        const blockMap = newContentState?.getBlockMap();
+        const key = selectionState?.getStartKey();
+        const block = blockMap?.get(key);
+        const newBlockKey = genKey();
+
+        const newBlock = new ContentBlock({
+            key: newBlockKey,
+            type: 'unstyled',
+            text: '',
+            characterList: List(Repeat(null, 0)),
+        });
+
+        const blocksBefore = blockMap.toSeq().takeUntil(v => v === block);
+        const blocksAfter = blockMap.toSeq().skipUntil(v => v === block).rest();
+
+        const newBlockMap = blocksBefore
+            .concat(
+                [[key, block], [newBlockKey, newBlock]],
+                blocksAfter
+            )
+            .toOrderedMap();
+
+        const newState = newContentState.merge({
+            blockMap: newBlockMap,
+            selectionAfter: selectionState.merge({
+                anchorKey: newBlockKey,
+                anchorOffset: 0,
+                focusKey: newBlockKey,
+                focusOffset: 0,
+                isBackward: false,
+            }),
+        });
+
+        return EditorState.push(editorState, newState, 'insert-fragment');
     };
 
     const StyleButton: React.FC<any> = ({ onToggle, style, active, label }) => {
@@ -925,6 +1005,8 @@ const RichTextEditor: React.FC = (props: any) => {
                 promptForLink(e);
             } else if (label === 'Image') {
                 promptForMedia('image');
+            } else if (label === 'Line') {
+                setEditorState(insertHorizontalLine(editorState, 'hr-thin'))
             } else {
                 onToggle(style);
                 if (blockExists) {
@@ -979,6 +1061,10 @@ const RichTextEditor: React.FC = (props: any) => {
                 extraClass = 'font-bold';
                 // displayLabel = '<svg width="23" height="23" viewBox="0 0 24 24" role="presentation"><path d="M12.2 6h7.81C21.108 6 22 6.893 22 7.992v11.016c0 1.1-.898 1.992-1.99 1.992H3.99A1.992 1.992 0 012 19.008V5.006C2 3.898 2.896 3 3.997 3h5.006c1.103 0 2.327.826 2.742 1.862L12.2 6z" fill="currentColor" fill-rule="evenodd"></path></svg>'
                 break;
+            case 'Line':
+                displayLabel = '<svg width="24" height="24" viewBox="0 0 24 24" role="presentation"><path d="M4 12h16v1H4z" fill="currentColor" fill-rule="evenodd"/></svg>';
+                extraClass = ''
+                break;
             default:
                 displayLabel = label;
                 extraClass = '';
@@ -987,14 +1073,17 @@ const RichTextEditor: React.FC = (props: any) => {
 
             <span className={`bg-white hover:bg-gray-200 p-1 text-center rounded-sm cursor-pointer ${className_} extra-style ${extraClass}`} style={{
                 minWidth: '20px',
+                height: '32px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
                 color: active ? '#5890ff' : undefined,
-            }} onMouseDown={handleMouseDown}>
-                <span dangerouslySetInnerHTML={{ __html: displayLabel }} />
+            }
+            } onMouseDown={handleMouseDown} >
+                <span className='min-w-[10px]' dangerouslySetInnerHTML={{ __html: displayLabel }} />
 
-            </span>
+            </span >
         )
-
-
     };
     const getMentionPosition = () => {
         const selection = window?.getSelection();
@@ -1043,7 +1132,7 @@ const RichTextEditor: React.FC = (props: any) => {
         rawContentState?.blocks?.forEach(block => {
             noteText += block?.text + ' ';
         });
-        if(noteText !== ' '){
+        if (noteText !== ' ') {
             console.log({ html: element?.innerHTML, rawJson: rawContentState, mentions: sendMentions, text: noteText }, "onsubmit");
             await OnSubmit({ html: element?.innerHTML, rawJson: rawContentState, mentions: sendMentions, text: noteText });
             setEditorState(EditorState.createEmpty(decorator));
@@ -1064,20 +1153,22 @@ const RichTextEditor: React.FC = (props: any) => {
         // console.log(currentStyle, "currentStyle")
 
         return (
-            <div className="flex p-2 justify-center items-center" onMouseEnter={(e) => {               
-                editorRef?.current?.blur();
+            <div className="flex p-2 justify-center items-center" onMouseEnter={(e) => {
+                // editorRef?.current?.blur();
             }} onClick={() => {
                 if (activeAction['toggle-textType']) setActiveAction({})
             }
             } >
-                <div className='w-[96%] flex flex-wrap gap-3 justify-start items-center' onMouseEnter={(e) => {        
-                    editorRef?.current?.blur();
+                <div className='w-[96%] flex flex-wrap gap-3 justify-start items-center' onMouseEnter={(e) => {
+                    // editorRef?.current?.blur();
                 }} onClick={() => {
                     if (activeAction['toggle-textType']) setActiveAction({})
                 }
                 } >
-                    <div className='flex flex-col cursor-pointer relative'>
-                        <div className='p-2 text-gray-500 cursor-pointer inline-block shadow-sm rounded-sm text-center py-1' style={{ width: '100px' }} onClick={(e) => {
+                    <div className='flex flex-col cursor-pointer relative' onMouseEnter={(e) => {
+                        editorRef?.current?.blur();
+                    }} >
+                        <div className='p-2 text-gray-500 cursor-pointer border border-gray-200 inline-block rounded-sm text-center py-1' style={{ width: '100px' }} onClick={(e) => {
                             setAnchorEl(e.currentTarget);
                             setActiveAction({ 'toggle-textType': !activeAction['toggle-textType'] })
                         }}>
@@ -1100,42 +1191,6 @@ const RichTextEditor: React.FC = (props: any) => {
                         }
                     </div>
 
-                    <StyleButton key={'Bold'} active={currentStyle?.has('BOLD')} label={'Bold'} onToggle={toggleInlineStyle} style={'BOLD'} />
-                    <StyleButton key={'Italic'} active={currentStyle?.has('ITALIC')} label={'Italic'} onToggle={toggleInlineStyle} style={'ITALIC'} />
-                    <StyleButton key={'Underline'} active={currentStyle?.has('UNDERLINE')} label={'Underline'} onToggle={toggleInlineStyle} style={'UNDERLINE'} />
-                    <StyleButton key={'Monospace'} active={currentStyle?.has('CODE')} label={'Monospace'} onToggle={toggleInlineStyle} style={'CODE'} />
-
-                    <StyleButton key={'Blockquote'} active={'blockquote' === blockType} label={'Blockquote'} onToggle={toggleBlockType} style={'blockquote'} />
-                    <StyleButton key={'UL'} active={'unordered-list-item' === blockType} label={'UL'} onToggle={toggleBlockType} style={'unordered-list-item'} />
-                    <StyleButton key={'OL'} active={'ordered-list-item' === blockType} label={'OL'} onToggle={toggleBlockType} style={'ordered-list-item'} />
-                    <StyleButton key={'Code Block'} active={'code-block' === blockType} label={'Code Block'} onToggle={toggleBlockType} style={'code-block'} />
-                    <div className='h-[32px] relative'>
-                        <StyleButton key={'Link'} active={showURLInput} label={'Link'} style={'link'} />
-                        {showURLInput && (
-                            <div className='absolute z-50 border bg-white border-gray-100 rounded-md p-2 flex flex-col gap-5 justify-center shadow-md items-center mr-2' style={{ marginBottom: 10, width: '20rem', marginLeft: '-9rem', top: "100%" }}>
-                                <input
-                                    className='border border-gray-200 rounded focus:outline-none'
-                                    onChange={onURLChange}
-                                    ref={(input) => {
-                                        if (input) input.focus();
-                                    }}
-                                    style={{
-                                        fontFamily: "'Georgia', serif",
-                                        padding: 6,
-                                        width: '100%',
-                                    }}
-                                    type="text"
-                                    value={urlValue}
-                                    onKeyDown={onLinkInputKeyDown}
-                                    placeholder='URL'
-                                />
-                                <div className='flex justify-end gap-3 p-1 w-full'>
-                                    <div className='border border-gray-200 shadow-sm cursor-pointer text-center p-1 text-sm' onMouseDown={removeLink}>Remove</div>
-                                    <div className='border border-gray-200 shadow-sm cursor-pointer text-center p-1 text-sm' onMouseDown={confirmLink}>Add</div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
                     <div className='h-[32px] relative'>
                         <StyleButton key={'Image'} active={showMediaURLInput} label={'Image'} style={'image'} />
                         {showMediaURLInput && (
@@ -1176,10 +1231,48 @@ const RichTextEditor: React.FC = (props: any) => {
                         )}
                     </div>
 
+                    <div className='h-[32px] relative'>
+                        <StyleButton key={'Link'} active={showURLInput} label={'Link'} style={'link'} />
+                        {showURLInput && (
+                            <div className='absolute z-50 border bg-white border-gray-100 rounded-md p-2 flex flex-col gap-5 justify-center shadow-md items-center mr-2' style={{ marginBottom: 10, width: '20rem', marginLeft: '-9rem', top: "100%" }}>
+                                <input
+                                    className='border border-gray-200 rounded focus:outline-none'
+                                    onChange={onURLChange}
+                                    ref={(input) => {
+                                        if (input) input.focus();
+                                    }}
+                                    style={{
+                                        fontFamily: "'Georgia', serif",
+                                        padding: 6,
+                                        width: '100%',
+                                    }}
+                                    type="text"
+                                    value={urlValue}
+                                    onKeyDown={onLinkInputKeyDown}
+                                    placeholder='URL'
+                                />
+                                <div className='flex justify-end gap-3 p-1 w-full'>
+                                    <div className='border border-gray-200 shadow-sm cursor-pointer text-center p-1 text-sm' onMouseDown={removeLink}>Remove</div>
+                                    <div className='border border-gray-200 shadow-sm cursor-pointer text-center p-1 text-sm' onMouseDown={confirmLink}>Add</div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <StyleButton key={'Bold'} active={currentStyle?.has('BOLD')} label={'Bold'} onToggle={toggleInlineStyle} style={'BOLD'} />
+                    <StyleButton key={'Italic'} active={currentStyle?.has('ITALIC')} label={'Italic'} onToggle={toggleInlineStyle} style={'ITALIC'} />
+                    <StyleButton key={'Underline'} active={currentStyle?.has('UNDERLINE')} label={'Underline'} onToggle={toggleInlineStyle} style={'UNDERLINE'} />
+                    <StyleButton key={'Monospace'} active={currentStyle?.has('CODE')} label={'Monospace'} onToggle={toggleInlineStyle} style={'CODE'} />
+
+                    <StyleButton key={'Blockquote'} active={'blockquote' === blockType} label={'Blockquote'} onToggle={toggleBlockType} style={'blockquote'} />
+                    <StyleButton key={'UL'} active={'unordered-list-item' === blockType} label={'UL'} onToggle={toggleBlockType} style={'unordered-list-item'} />
+                    <StyleButton key={'OL'} active={'ordered-list-item' === blockType} label={'OL'} onToggle={toggleBlockType} style={'ordered-list-item'} />
+                    <StyleButton key={'Line'} active={false} label={'Line'} onToggle={toggleBlockType} style={'LINE'} />
+                    <StyleButton key={'Code Block'} active={'code-block' === blockType} label={'Code Block'} onToggle={toggleBlockType} style={'code-block'} />
+
                 </div>
 
 
-                <div className='flex justify-end items-center cursor-pointer p-1' onMouseEnter={(e) => {
+                <div className='flex justify-end items-center cursor-pointer p-1 px-3' onMouseEnter={(e) => {
                     // e.preventDefault();
                     editorRef?.current?.blur();
                 }} onClick={(e) => {
@@ -1223,7 +1316,6 @@ const RichTextEditor: React.FC = (props: any) => {
         );
     };
     const PDFPreview = (props) => {
-        console.log(props, "pdf")
         return (
             <a href={props?.src} download style={{ textDecoration: 'none' }}>
                 <div className='w-full border border-gray-300 bg-gray-100 p-2 rounded cursor-pointer truncate'>
@@ -1241,7 +1333,26 @@ const RichTextEditor: React.FC = (props: any) => {
             </a>
         );
     };
-
+    const CustomHRComponent = (props) => {
+        const type = props.block.getType();
+        let style;
+        switch (type) {
+            case 'hr-thin':
+                style = { border: 'none', borderBottom: '1px solid #898988', margin: '10px 0' };
+                break;
+            case 'hr-medium':
+                style = { border: 'none', borderBottom: '3px solid #898988', margin: '10px 0' };
+                break;
+            case 'hr-thick':
+                style = { border: 'none', borderBottom: '5px solid #898988', margin: '10px 0' };
+                break;
+            default:
+                style = { border: 'none', borderBottom: '1px solid #898988', margin: '10px 0' };
+        }
+        return (
+            <div style={{ textAlign: 'center' }}><hr style={style} /></div>
+        )
+    };
 
     const Media = (props) => {
         const entityAtBegin = props?.block?.getEntityAt(0);
@@ -1303,9 +1414,59 @@ const RichTextEditor: React.FC = (props: any) => {
                 component: Media,
                 editable: false,
             };
+        } else if (type === 'hr-thin') {
+            return {
+                component: CustomHRComponent,
+                editable: false,
+            };
         }
         return null;
     }, []);
+    const htmlToContentState = (html) => {
+        const blocksFromHTML = convertFromHTML(html);
+        const state = ContentState.createFromBlockArray(
+            blocksFromHTML.contentBlocks,
+            blocksFromHTML.entityMap
+        );
+        return state;
+    };
+
+    const handlePastedText = (text, html, editorState, onChange) => {
+        const selectedBlock = editorState?.getCurrentContent();
+
+        if (selectedBlock && selectedBlock.type === "code") {
+            const contentState = Modifier.replaceText(
+                editorState.getCurrentContent(),
+                editorState.getSelection(),
+                text
+            );
+            onChange(EditorState.push(editorState, contentState, "insert-characters"));
+            return 'handled';
+        }
+        // else if (html) {
+        //   try {
+        //     const contentState = htmlToContentState(html);
+        //     const newEditorState = EditorState.createWithContent(contentState);
+        //     onChange(newEditorState);
+        //     return 'handled';
+        //   } catch (error) {
+        //     console.error('Error parsing pasted HTML:', error);
+        //   }
+        // }
+        else if (text) {
+            const contentState = Modifier.replaceText(
+                editorState.getCurrentContent(),
+                editorState.getSelection(),
+                text
+            );
+            onChange(EditorState.push(editorState, contentState, "insert-characters"));
+            return 'handled';
+        }
+
+        return 'not-handled';
+    };
+
+
 
     return (
         // <div className='flex justify-center items-center' style={{ marginTop: '2rem' }}>
@@ -1341,10 +1502,11 @@ const RichTextEditor: React.FC = (props: any) => {
                     }}
                     // onUpArrow={handleUpArrow}
                     // onDownArrow={handleDownArrow}
+                    handlePastedText={(text, html) => handlePastedText(text, html, editorState, onChange)}
                     readOnly={false}
                     textAlignment="left"
                     tabIndex={0}
-                    stripPastedStyles={false}
+                    // stripPastedStyles={false}
                     editorKey="myEditor"
                     webDriverTestID="editor"
                 />
